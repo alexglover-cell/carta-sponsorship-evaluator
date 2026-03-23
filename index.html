@@ -94,6 +94,28 @@
 </head>
 <body>
 
+<div id="passwordScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#f7f6f2;display:flex;align-items:center;justify-content:center;z-index:9999;">
+  <div style="background:#fff;border:1px solid #e8e5df;border-radius:12px;padding:40px;width:100%;max-width:380px;text-align:center;">
+    <div style="font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#888;margin-bottom:8px;">Carta Internal Tool</div>
+    <div style="font-size:20px;font-weight:600;margin-bottom:24px;">FA Sponsorship Evaluator</div>
+    <input type="password" id="passwordInput" placeholder="Enter password" style="width:100%;margin-bottom:12px;text-align:center;" onkeydown="if(event.key==='Enter')checkPassword()" />
+    <div id="passwordError" style="font-size:12px;color:#791F1F;margin-bottom:12px;display:none;">Incorrect password. Try again.</div>
+    <button onclick="checkPassword()" style="background:#1a1a1a;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;width:100%;">Access tool</button>
+  </div>
+</div>
+
+<script>
+function checkPassword() {
+  const input = document.getElementById('passwordInput').value;
+  if (input === 'SponsorEvents2026!') {
+    document.getElementById('passwordScreen').style.display = 'none';
+  } else {
+    document.getElementById('passwordError').style.display = 'block';
+    document.getElementById('passwordInput').value = '';
+  }
+}
+</script>
+
 <header>
   <h1>Carta FA · Sponsorship Evaluator</h1>
   <span class="badge">2026</span>
