@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carta FA Sponsorship Evaluator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #f7f6f2; color: #1a1a1a; min-height: 100vh; }
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  header { background: #1a1a1a; color: #f7f6f2; padding: 18px 32px; display: flex; justify-content: space-between; align-items: center; }
+  header h1 { font-size: 15px; font-weight: 500; letter-spacing: 0.03em; }
+  header .badge { background: #3a5c4e; color: #a8d5c2; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 500; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+
+  .section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #888; margin-bottom: 16px; }
+
+  .form-card { background: #fff; border: 1px solid #e8e5df; border-radius: 12px; padding: 28px; margin-bottom: 24px; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+  .full { grid-column: 1 / -1; }
+
+  label { display: block; font-size: 12px; font-weight: 500; color: #666; margin-bottom: 6px; letter-spacing: 0.02em; }
+  input, select, textarea { width: 100%; background: #f7f6f2; border: 1px solid #e0ddd7; border-radius: 8px; padding: 10px 12px; font-size: 14px; font-family: inherit; color: #1a1a1a; transition: border 0.15s; outline: none; }
+  input:focus, select:focus, textarea:focus { border-color: #3a5c4e; background: #fff; }
+  textarea { resize: vertical; min-height: 80px; }
+
+  .arr-row { display: flex; gap: 8px; align-items: flex-end; }
+  .arr-row input { flex: 1; }
+  .arr-status { font-size: 11px; padding: 10px 12px; border-radius: 8px; white-space: nowrap; font-weight: 500; min-width: 100px; text-align: center; }
+  .arr-match { background: #eaf3de; color: #3B6D11; }
+  .arr-gap { background: #FAEEDA; color: #854F0B; }
+  .arr-unknown { background: #f1efe8; color: #5F5E5A; }
+
+  .submit-btn { background: #1a1a1a; color: #f7f6f2; border: none; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.15s; }
+  .submit-btn:hover { background: #333; }
+  .submit-btn:disabled { background: #ccc; cursor: not-allowed; }
+  .submit-btn .spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; display: none; }
+  .submit-btn.loading .spinner { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .results-area { margin-top: 24px; }
+
+  .result-card { background: #fff; border: 1px solid #e8e5df; border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+  .result-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #f0ede7; }
+  .result-firm { font-size: 16px; font-weight: 600; }
+  .result-event { font-size: 13px; color: #888; margin-top: 2px; }
+  .verdict { font-size: 13px; font-weight: 600; padding: 6px 16px; border-radius: 20px; }
+  .verdict.yes { background: #eaf3de; color: #27500A; }
+  .verdict.no { background: #FCEBEB; color: #791F1F; }
+
+  .result-body { padding: 20px 24px; }
+  .result-body p { font-size: 14px; line-height: 1.7; color: #444; }
+
+  .meta-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .pill { font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 500; background: #f1efe8; color: #5F5E5A; }
+  .pill.arr { background: #E6F1FB; color: #185FA5; }
+  .pill.opp { background: #EEEDFE; color: #3C3489; }
+  .pill.warn { background: #FAEEDA; color: #633806; }
+
+  .history-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .history-table th { text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 600; color: #888; letter-spacing: 0.07em; text-transform: uppercase; border-bottom: 1px solid #e8e5df; background: #faf9f6; }
+  .history-table td { padding: 12px 16px; border-bottom: 1px solid #f0ede7; color: #444; vertical-align: top; }
+  .history-table tr:last-child td { border-bottom: none; }
+  .yes-badge { background: #eaf3de; color: #27500A; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+  .no-badge { background: #FCEBEB; color: #791F1F; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+
+  .export-btn { background: #fff; border: 1px solid #e0ddd7; color: #333; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: border-color 0.15s; }
+  .export-btn:hover { border-color: #1a1a1a; }
+
+  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .month-label { font-size: 20px; font-weight: 600; }
+  .stats-row { display: flex; gap: 12px; margin-bottom: 24px; }
+  .stat { background: #fff; border: 1px solid #e8e5df; border-radius: 10px; padding: 14px 20px; flex: 1; }
+  .stat .num { font-size: 24px; font-weight: 600; }
+  .stat .lbl { font-size: 11px; color: #888; margin-top: 2px; font-weight: 500; letter-spacing: 0.04em; }
+  .stat.yes-stat .num { color: #27500A; }
+  .stat.no-stat .num { color: #791F1F; }
+  .stat.arr-stat .num { color: #185FA5; }
+
+  .empty-state { text-align: center; padding: 48px 24px; color: #aaa; font-size: 14px; }
+  .empty-state .icon { font-size: 32px; margin-bottom: 12px; }
+
+  .arr-hint { font-size: 11px; color: #aaa; margin-top: 5px; }
+
+  @media (max-width: 640px) {
+    .form-grid, .form-grid.three { grid-template-columns: 1fr; }
+    .stats-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Carta FA · Sponsorship Evaluator</h1>
+  <span class="badge">2026</span>
+</header>
+
+<div class="container">
+
+  <div class="top-bar">
+    <div class="month-label" id="monthLabel"></div>
+    <button class="export-btn" onclick="exportCSV()">&#8595; Export CSV</button>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">Requests this month</div></div>
+    <div class="stat yes-stat"><div class="num" id="statYes">0</div><div class="lbl">Recommended YES</div></div>
+    <div class="stat no-stat"><div class="num" id="statNo">0</div><div class="lbl">Recommended NO</div></div>
+    <div class="stat arr-stat"><div class="num" id="statARR">$0</div><div class="lbl">Total ARR (YES accounts)</div></div>
+  </div>
+
+  <div class="section-title">New sponsorship request</div>
+  <div class="form-card">
+    <div class="form-grid">
+      <div>
+        <label>Firm / Account name</label>
+        <input type="text" id="firm" placeholder="e.g. Moonshots Capital" />
+      </div>
+      <div>
+        <label>Event name</label>
+        <input type="text" id="event" placeholder="e.g. Annual Leadership Summit" />
+      </div>
+      <div>
+        <label>Event date</label>
+        <input type="text" id="eventDate" placeholder="e.g. April 22, 2026" />
+      </div>
+      <div>
+        <label>Carta POC</label>
+        <input type="text" id="poc" placeholder="e.g. Rabeya Jawaid" />
+      </div>
+      <div>
+        <label>Sponsorship cost</label>
+        <input type="text" id="cost" placeholder="e.g. $5,000" />
+      </div>
+      <div>
+        <label>Current status</label>
+        <select id="status">
+          <option value="">Select status...</option>
+          <option>Committed</option>
+          <option>Considering</option>
+          <option>Passed</option>
+          <option>Need to determine</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top: 16px;">
+      <label>ARR (from CSV / your records)</label>
+      <div class="arr-row">
+        <input type="text" id="arrCsv" placeholder="e.g. $145,500" oninput="checkARR()" />
+        <input type="text" id="arrSnowflake" placeholder="Snowflake ARR (leave blank to skip)" oninput="checkARR()" />
+        <div class="arr-status arr-unknown" id="arrStatus">Enter ARR</div>
+      </div>
+      <div class="arr-hint">If you have Snowflake ARR, enter both to flag discrepancies automatically.</div>
+    </div>
+
+    <div style="margin-top: 16px;">
+      <label>Open Salesforce opportunities / upsell signals</label>
+      <textarea id="opps" placeholder="e.g. Fund IV Upsell $30K (Mar 2026), Renewal $145K (Apr 2026)"></textarea>
+    </div>
+
+    <div style="margin-top: 16px;">
+      <label>Relationship notes</label>
+      <textarea id="notes" placeholder="e.g. Very pro-Carta, promotes us in events, expanding to Fund III, strategic client..."></textarea>
+    </div>
+
+    <div style="margin-top: 16px;">
+      <label>Event description</label>
+      <textarea id="description" placeholder="Paste the event pitch or description here..."></textarea>
+    </div>
+
+    <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+      <button class="submit-btn" id="submitBtn" onclick="evaluate()">
+        <div class="spinner"></div>
+        <span id="submitText">Evaluate request</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="results-area">
+    <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
+      <span>Evaluations — <span id="monthShort"></span></span>
+    </div>
+    <div id="resultsContainer">
+      <div class="empty-state">
+        <div class="icon">&#9650;</div>
+        <div>No evaluations yet this month. Submit a request above to get started.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const records = [];
+
+function getMonthLabel() {
+  const now = new Date();
+  return now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}
+
+document.getElementById('monthLabel').textContent = getMonthLabel();
+document.getElementById('monthShort').textContent = getMonthLabel();
+
+function parseDollar(str) {
+  if (!str) return null;
+  const n = parseFloat(str.replace(/[$,k]/gi, s => s.toLowerCase() === 'k' ? '000' : ''));
+  return isNaN(n) ? null : n;
+}
+
+function formatDollar(n) {
+  if (n === null) return 'N/A';
+  return '$' + Math.round(n).toLocaleString();
+}
+
+function checkARR() {
+  const csv = parseDollar(document.getElementById('arrCsv').value);
+  const sf = parseDollar(document.getElementById('arrSnowflake').value);
+  const el = document.getElementById('arrStatus');
+  if (csv !== null && sf !== null) {
+    const diff = Math.abs(csv - sf);
+    const pct = diff / Math.max(csv, sf);
+    if (pct < 0.05) {
+      el.textContent = '✓ Match';
+      el.className = 'arr-status arr-match';
+    } else {
+      el.textContent = '⚠ $' + Math.round(diff / 1000) + 'K gap';
+      el.className = 'arr-status arr-gap';
+    }
+  } else if (csv !== null) {
+    el.textContent = 'CSV only';
+    el.className = 'arr-status arr-unknown';
+  } else {
+    el.textContent = 'Enter ARR';
+    el.className = 'arr-status arr-unknown';
+  }
+}
+
+async function evaluate() {
+  const firm = document.getElementById('firm').value.trim();
+  const event = document.getElementById('event').value.trim();
+  if (!firm || !event) { alert('Please fill in at least the firm name and event name.'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  document.getElementById('submitText').textContent = 'Evaluating...';
+
+  const arrCsv = document.getElementById('arrCsv').value.trim();
+  const arrSf = document.getElementById('arrSnowflake').value.trim();
+  const cost = document.getElementById('cost').value.trim();
+  const opps = document.getElementById('opps').value.trim();
+  const notes = document.getElementById('notes').value.trim();
+  const description = document.getElementById('description').value.trim();
+  const status = document.getElementById('status').value;
+  const eventDate = document.getElementById('eventDate').value.trim();
+  const poc = document.getElementById('poc').value.trim();
+
+  const csvNum = parseDollar(arrCsv);
+  const sfNum = parseDollar(arrSf);
+  let arrNote = '';
+  if (csvNum !== null && sfNum !== null) {
+    const diff = Math.abs(csvNum - sfNum);
+    const pct = diff / Math.max(csvNum, sfNum);
+    arrNote = pct < 0.05
+      ? `ARR verified: ${formatDollar(sfNum)} (CSV and Snowflake match).`
+      : `ARR DISCREPANCY: CSV shows ${formatDollar(csvNum)}, Snowflake shows ${formatDollar(sfNum)} — a $${Math.round(diff/1000)}K difference. Flag for verification.`;
+  }
+
+  const prompt = `You are a senior Carta sales operations analyst evaluating whether Carta should sponsor a VC firm's event. Carta sponsors existing FA (Fund Administration) customers for $2,000–$5,000 to build relationships and support upsell/expansion opportunities.
+
+Evaluate this sponsorship request and provide:
+1. A clear YES or NO recommendation (one word, first in your response)
+2. 2-3 concise bullet points explaining why (focus on ARR, upsell pipeline, relationship value, cost vs. return)
+
+Be direct and decisive. The goal is saving the sales team time — no hedging.
+
+---
+FIRM: ${firm}
+EVENT: ${event}
+EVENT DATE: ${eventDate || 'Not specified'}
+CARTA POC: ${poc || 'Not specified'}
+SPONSORSHIP COST: ${cost || 'Not specified'}
+CURRENT STATUS: ${status || 'Not specified'}
+ARR (from CSV): ${arrCsv || 'Not provided'}
+ARR (Snowflake): ${arrSf || 'Not provided'}
+${arrNote ? 'ARR NOTE: ' + arrNote : ''}
+OPEN OPPORTUNITIES / UPSELL SIGNALS: ${opps || 'None provided'}
+RELATIONSHIP NOTES: ${notes || 'None provided'}
+EVENT DESCRIPTION: ${description || 'None provided'}
+
+Respond in this exact format:
+RECOMMENDATION: YES or NO
+REASON:
+• [bullet 1]
+• [bullet 2]
+• [bullet 3 if needed]`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content.map(b => b.text || '').join('');
+
+    const yesNo = text.match(/RECOMMENDATION:\s*(YES|NO)/i);
+    const verdict = yesNo ? yesNo[1].toUpperCase() : 'NO';
+    const reasonMatch = text.match(/REASON:([\s\S]*)/i);
+    const reason = reasonMatch ? reasonMatch[1].trim() : text;
+
+    const arrDiscrepancy = csvNum !== null && sfNum !== null && Math.abs(csvNum - sfNum) / Math.max(csvNum, sfNum) > 0.05;
+
+    const record = {
+      firm, event, eventDate, poc, cost, status,
+      arrCsv, arrSf, arrDiscrepancy,
+      opps, notes, description, verdict, reason,
+      ts: new Date()
+    };
+    records.unshift(record);
+    updateStats();
+    renderResults();
+    clearForm();
+  } catch (e) {
+    alert('Error calling evaluation API: ' + e.message);
+  }
+
+  btn.classList.remove('loading');
+  btn.disabled = false;
+  document.getElementById('submitText').textContent = 'Evaluate request';
+}
+
+function clearForm() {
+  ['firm','event','eventDate','poc','cost','arrCsv','arrSf','opps','notes','description'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('status').value = '';
+  document.getElementById('arrStatus').textContent = 'Enter ARR';
+  document.getElementById('arrStatus').className = 'arr-status arr-unknown';
+}
+
+function updateStats() {
+  const total = records.length;
+  const yes = records.filter(r => r.verdict === 'YES').length;
+  const no = total - yes;
+  const yesARR = records.filter(r => r.verdict === 'YES').reduce((sum, r) => {
+    const n = parseDollar(r.arrSf || r.arrCsv);
+    return sum + (n || 0);
+  }, 0);
+
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statYes').textContent = yes;
+  document.getElementById('statNo').textContent = no;
+  document.getElementById('statARR').textContent = yesARR >= 1000000
+    ? '$' + (yesARR / 1000000).toFixed(1) + 'M'
+    : '$' + Math.round(yesARR / 1000) + 'K';
+}
+
+function renderResults() {
+  const container = document.getElementById('resultsContainer');
+  if (records.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">&#9650;</div><div>No evaluations yet this month.</div></div>';
+    return;
+  }
+
+  container.innerHTML = records.map((r, i) => {
+    const bullets = r.reason.split('\n').filter(l => l.trim().startsWith('•')).map(l =>
+      `<p style="padding: 4px 0 4px 16px; position: relative;">
+        <span style="position:absolute;left:0;color:#aaa;">•</span>${l.replace(/^•\s*/, '')}
+      </p>`
+    ).join('');
+
+    const pills = [];
+    const bestARR = r.arrSf || r.arrCsv;
+    if (bestARR) pills.push(`<span class="pill arr">ARR ${bestARR}</span>`);
+    if (r.cost) pills.push(`<span class="pill">Cost ${r.cost}</span>`);
+    if (r.opps) pills.push(`<span class="pill opp">Open opps</span>`);
+    if (r.arrDiscrepancy) pills.push(`<span class="pill warn">⚠ ARR discrepancy</span>`);
+
+    return `<div class="result-card">
+      <div class="result-header">
+        <div>
+          <div class="result-firm">${r.firm}</div>
+          <div class="result-event">${r.event}${r.eventDate ? ' · ' + r.eventDate : ''}</div>
+        </div>
+        <span class="verdict ${r.verdict.toLowerCase()}">${r.verdict}</span>
+      </div>
+      <div class="result-body">
+        <div class="meta-pills">${pills.join('')}</div>
+        ${bullets || `<p>${r.reason}</p>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function exportCSV() {
+  if (records.length === 0) { alert('No records to export.'); return; }
+  const headers = ['Firm','Event','Event Date','POC','Cost','Status','ARR (CSV)','ARR (Snowflake)','ARR Discrepancy','Open Opps','Notes','RECOMMENDATION','Reason'];
+  const rows = records.map(r => [
+    r.firm, r.event, r.eventDate, r.poc, r.cost, r.status,
+    r.arrCsv, r.arrSf, r.arrDiscrepancy ? 'YES' : 'NO',
+    r.opps, r.notes, r.verdict, r.reason.replace(/\n/g, ' ').replace(/•/g, '-')
+  ].map(v => '"' + String(v || '').replace(/"/g, '""') + '"').join(','));
+
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `carta_sponsorship_${new Date().toISOString().slice(0, 7)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
