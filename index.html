@@ -181,7 +181,7 @@
 
     <div style="margin-top:20px;display:flex;justify-content:space-between;align-items:center;">
       <span class="save-indicator" id="saveIndicator">&#10003; Saved</span>
-      <button class="submit-btn" onclick="evaluate()">Evaluate request</button>
+      <button class="submit-btn" onclick="runEvaluation()">Evaluate request</button>
     </div>
   </div>
 
@@ -256,7 +256,7 @@ function checkARR() {
   }
 }
 
-function evaluate() {
+function runEvaluation() {
   const firm = document.getElementById('firm').value.trim();
   const event = document.getElementById('event').value.trim();
   if (!firm || !event) { alert('Please fill in at least the firm name and event name.'); return; }
